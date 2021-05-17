@@ -98,10 +98,6 @@ if __name__ == "__main__":
 
     # Open camera device
     cap = cv2.VideoCapture(default_camera)
-    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    fps = cap.get(cv2.CAP_PROP_FPS)
-
     if not cap.isOpened():
         print("Cannot open camera")
         exit()
