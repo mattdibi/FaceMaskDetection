@@ -3,6 +3,9 @@ import cv2
 import time
 import argparse
 
+from datetime import timezone
+import datetime
+
 import os.path
 
 import numpy as np
@@ -151,6 +154,7 @@ if __name__ == "__main__":
             outdict = {
                 "mask": detected_classes[0],
                 "no_mask": detected_classes[1],
+                "timestamp": datetime.datetime.now(timezone.utc).timestamp()
             }
 
             post_data(outdict, args.url, args.auth_username, args.auth_password)
