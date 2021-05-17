@@ -3,6 +3,8 @@ import cv2
 import time
 import argparse
 
+import os.path
+
 import numpy as np
 from utils.anchor_generator import generate_anchors
 from utils.anchor_decode import decode_bbox
@@ -66,9 +68,12 @@ def inference(image,
                                                  iou_thresh=iou_thresh,
                                                  )
 
+    # FIXME: Quick & dirty solution
+    use_detected_class = os.path.exists("models/new_face_mask_detection.pb")
+
     for idx in keep_idxs:
         conf = float(bbox_max_scores[idx])
-        class_id = bbox_max_score_classes[idx]
+        class_id = bbox_max_score_classes[idx] if use_detected_class else 1 # FIXME: Quick & dirty solution
         bbox = y_bboxes[idx]
         # clip the coordinate, avoid the value exceed the image boundary.
         xmin = max(0, int(bbox[0] * width))
