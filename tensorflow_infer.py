@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import cv2
 import time
-import argparse
+import json
 
 import numpy as np
 from PIL import Image
@@ -25,6 +25,7 @@ anchors = generate_anchors(feature_map_sizes, anchor_sizes, anchor_ratios)
 anchors_exp = np.expand_dims(anchors, axis=0)
 
 id2class = {0: 'Mask', 1: 'NoMask'}
+id2color = {0: (0, 255, 0), 1: (255, 0, 0)}
 
 
 def inference(image,
@@ -118,15 +119,27 @@ if __name__ == "__main__":
         read_frame_stamp = time.time()
 
         # Run inference
-        inference(img_raw,
-                  conf_thresh,
-                  iou_thresh=0.5,
-                  target_shape=(260, 260),
-                  draw_result=True,
-                  show_result=False)
+        detections = inference(img_raw,
+                               conf_thresh,
+                               iou_thresh=0.5,
+                               target_shape=(260, 260),
+                               draw_result=True,
+                               show_result=False)
 
         inference_stamp = time.time()
 
+        # Output structure
+        detected_classes = [0 , 0]
+        for detection in detections:
+            class_id = detection[0]
+            detected_classes[class_id] += 1
+
+        outdict = {
+            "mask": detected_classes[0],
+            "no_mask": detected_classes[1],
+        }
+
+        # Show results
         cv2.imshow('image', img_raw[:, :, ::-1])
         if cv2.waitKey(1) == ord('q'):
             break
