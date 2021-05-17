@@ -91,11 +91,30 @@ def inference(image,
         Image.fromarray(image).show()
     return output_info
 
+def post_data(outdata:dict, url:str, user:str, passw:str):
+    '''
+    Function responsible for posting the detection data on the RESTful API
+    :param outdata: Dictionary representing the data
+    :param url: Address of the RESTful API server
+    :param user: Username for Basic Access Authentication
+    :param passw: Password for Basic Access Authentication
+    :return:
+    '''
+    import requests
+    from requests.auth import HTTPBasicAuth
+
+    try:
+        requests.post(url, json=outdata, auth=HTTPBasicAuth(user, passw), timeout=0.05)
+    except Exception as e:
+        print(str(e))
 
 if __name__ == "__main__":
     # Defaults
     default_camera = 0
-    conf_thresh    = 0.5
+    frame_interval = 30
+    auth_username  = "admin"
+    auth_password  = "password"
+    upstream_url   = "https://127.0.0.1/app/v1/core/configuration"
 
     # Open camera device
     cap = cv2.VideoCapture(default_camera)
@@ -104,6 +123,7 @@ if __name__ == "__main__":
         exit()
 
     # Main inference loop
+    frame_nr = 0
     while True:
         start_stamp = time.time()
 
@@ -112,6 +132,7 @@ if __name__ == "__main__":
         if not ret:
             print("Can't receive frame (stream end?). Exiting ...")
             break
+        frame_nr += 1
 
         # Convert to RGB
         img_raw = cv2.cvtColor(img_raw, cv2.COLOR_BGR2RGB)
@@ -120,7 +141,7 @@ if __name__ == "__main__":
 
         # Run inference
         detections = inference(img_raw,
-                               conf_thresh,
+                               conf_thresh=0.5,
                                iou_thresh=0.5,
                                target_shape=(260, 260),
                                draw_result=True,
@@ -128,16 +149,19 @@ if __name__ == "__main__":
 
         inference_stamp = time.time()
 
-        # Output structure
-        detected_classes = [0 , 0]
-        for detection in detections:
-            class_id = detection[0]
-            detected_classes[class_id] += 1
+        # Post detection results
+        if frame_nr % frame_interval == 0:
+            detected_classes = [0 , 0]
+            for detection in detections:
+                class_id = detection[0]
+                detected_classes[class_id] += 1
 
-        outdict = {
-            "mask": detected_classes[0],
-            "no_mask": detected_classes[1],
-        }
+            outdict = {
+                "mask": detected_classes[0],
+                "no_mask": detected_classes[1],
+            }
+
+            post_data(outdict, upstream_url, auth_username, auth_password)
 
         # Show results
         cv2.imshow('image', img_raw[:, :, ::-1])
