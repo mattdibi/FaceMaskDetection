@@ -91,8 +91,11 @@ def inference(image,
     return output_info
 
 
-def run_on_video(video_path, output_video_name, conf_thresh):
-    cap = cv2.VideoCapture(video_path)
+if __name__ == "__main__":
+    default_camera = 0
+    conf_thresh = 0.5
+
+    cap = cv2.VideoCapture(default_camera)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -101,7 +104,6 @@ def run_on_video(video_path, output_video_name, conf_thresh):
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     if not cap.isOpened():
         raise ValueError("Video open failed.")
-        return
     status = True
     idx = 0
     while status:
@@ -117,7 +119,8 @@ def run_on_video(video_path, output_video_name, conf_thresh):
                       draw_result=True,
                       show_result=False)
             cv2.imshow('image', img_raw[:, :, ::-1])
-            cv2.waitKey(1)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
             inference_stamp = time.time()
             # writer.write(img_raw)
             write_frame_stamp = time.time()
@@ -126,23 +129,7 @@ def run_on_video(video_path, output_video_name, conf_thresh):
             print("read_frame:%f, infer time:%f, write time:%f" % (read_frame_stamp - start_stamp,
                                                                    inference_stamp - read_frame_stamp,
                                                                    write_frame_stamp - inference_stamp))
-    # writer.release()
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Face Mask Detection")
-    parser.add_argument('--img-mode', type=int, default=0, help='set 1 to run on image, 0 to run on video.')
-    parser.add_argument('--img-path', type=str, help='path to your image.')
-    parser.add_argument('--video-path', type=str, default='0', help='path to your video, `0` means to use camera.')
-    # parser.add_argument('--hdf5', type=str, help='keras hdf5 file')
-    args = parser.parse_args()
-    if args.img_mode:
-        imgPath = args.img_path
-        img = cv2.imread(imgPath)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        inference(img, show_result=True, target_shape=(260, 260))
-    else:
-        video_path = args.video_path
-        if args.video_path == '0':
-            video_path = 0
-        run_on_video(video_path, '', conf_thresh=0.5)
+    # Clean exit
+    cap.release()
+    cv2.destroyAllWindows()
