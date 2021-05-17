@@ -167,12 +167,13 @@ if __name__ == "__main__":
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, id2color[class_id])
 
         # Show results
+        cv2.putText(frame, "FPS: %.2f" % (1/(inference_stamp - start_stamp)), (10, 22),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
+        cv2.putText(frame, "Inference time: %.4f" % (inference_stamp - read_frame_stamp), (10, 42),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
         cv2.imshow('image', frame)
         if cv2.waitKey(1) == ord('q'):
             break
-
-        print("capture time:%f, infer time:%f" % (read_frame_stamp - start_stamp,
-                                                  inference_stamp - read_frame_stamp))
 
     # Clean exit
     cap.release()
