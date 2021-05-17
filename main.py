@@ -23,7 +23,7 @@ anchors = generate_anchors(feature_map_sizes, anchor_sizes, anchor_ratios)
 anchors_exp = np.expand_dims(anchors, axis=0)
 
 id2class = {0: 'Mask', 1: 'NoMask'}
-id2color = {0: (0, 255, 0), 1: (255, 0, 0)}
+id2color = {0: (0, 255, 0), 1: (0, 0, 255)}
 
 
 def inference(image,
@@ -41,6 +41,9 @@ def inference(image,
     :param draw_result: whether to daw bounding box to the image.
     :return:
     '''
+
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # Converto to RGB
+
     # image = np.copy(image)
     output_info = []
     height, width, _ = image.shape
@@ -73,14 +76,6 @@ def inference(image,
         xmax = min(int(bbox[2] * width), width)
         ymax = min(int(bbox[3] * height), height)
 
-        if draw_result:
-            if class_id == 0:
-                color = (0, 255, 0)
-            else:
-                color = (255, 0, 0)
-            cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color, 2)
-            cv2.putText(image, "%s: %.2f" % (id2class[class_id], conf), (xmin + 2, ymin - 2),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, color)
         output_info.append([class_id, conf, xmin, ymin, xmax, ymax])
 
     return output_info
@@ -124,19 +119,16 @@ if __name__ == "__main__":
         start_stamp = time.time()
 
         # Grab frames
-        ret, img_raw = cap.read()
+        ret, frame = cap.read()
         if not ret:
             print("Can't receive frame (stream end?). Exiting ...")
             break
         frame_nr += 1
 
-        # Convert to RGB
-        img_raw = cv2.cvtColor(img_raw, cv2.COLOR_BGR2RGB)
-
         read_frame_stamp = time.time()
 
         # Run inference
-        detections = inference(img_raw,
+        detections = inference(frame,
                                conf_thresh=0.5,
                                iou_thresh=0.5,
                                target_shape=(260, 260),
@@ -158,8 +150,23 @@ if __name__ == "__main__":
 
             post_data(outdict, args.url, args.auth_username, args.auth_password)
 
+        # Draw results
+        for detection in detections:
+            class_id = detection[0]
+            conf = detection[1]
+
+            xmin = detection[2]
+            ymin = detection[3]
+
+            xmax = detection[4]
+            ymax = detection[5]
+
+            cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), id2color[class_id], 2)
+            cv2.putText(frame, "%s: %.2f" % (id2class[class_id], conf), (xmin + 2, ymin - 2),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, id2color[class_id])
+
         # Show results
-        cv2.imshow('image', img_raw[:, :, ::-1])
+        cv2.imshow('image', frame)
         if cv2.waitKey(1) == ord('q'):
             break
 
