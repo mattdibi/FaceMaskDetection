@@ -92,43 +92,51 @@ def inference(image,
 
 
 if __name__ == "__main__":
+    # Defaults
     default_camera = 0
-    conf_thresh = 0.5
+    conf_thresh    = 0.5
 
+    # Open camera device
     cap = cv2.VideoCapture(default_camera)
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
     fps = cap.get(cv2.CAP_PROP_FPS)
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    # writer = cv2.VideoWriter(output_video_name, fourcc, int(fps), (int(width), int(height)))
-    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+
     if not cap.isOpened():
-        raise ValueError("Video open failed.")
-    status = True
-    idx = 0
-    while status:
+        print("Cannot open camera")
+        exit()
+
+    # Main inference loop
+    while True:
         start_stamp = time.time()
-        status, img_raw = cap.read()
+
+        # Grab frames
+        ret, img_raw = cap.read()
+        if not ret:
+            print("Can't receive frame (stream end?). Exiting ...")
+            break
+
+        # Convert to RGB
         img_raw = cv2.cvtColor(img_raw, cv2.COLOR_BGR2RGB)
+
         read_frame_stamp = time.time()
-        if (status):
-            inference(img_raw,
-                      conf_thresh,
-                      iou_thresh=0.5,
-                      target_shape=(260, 260),
-                      draw_result=True,
-                      show_result=False)
-            cv2.imshow('image', img_raw[:, :, ::-1])
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-            inference_stamp = time.time()
-            # writer.write(img_raw)
-            write_frame_stamp = time.time()
-            idx += 1
-            print("%d of %d" % (idx, total_frames))
-            print("read_frame:%f, infer time:%f, write time:%f" % (read_frame_stamp - start_stamp,
-                                                                   inference_stamp - read_frame_stamp,
-                                                                   write_frame_stamp - inference_stamp))
+
+        # Run inference
+        inference(img_raw,
+                  conf_thresh,
+                  iou_thresh=0.5,
+                  target_shape=(260, 260),
+                  draw_result=True,
+                  show_result=False)
+
+        inference_stamp = time.time()
+
+        cv2.imshow('image', img_raw[:, :, ::-1])
+        if cv2.waitKey(1) == ord('q'):
+            break
+
+        print("capture time:%f, infer time:%f" % (read_frame_stamp - start_stamp,
+                                                  inference_stamp - read_frame_stamp))
 
     # Clean exit
     cap.release()
