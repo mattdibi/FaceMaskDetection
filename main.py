@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 import cv2
 import time
+import argparse
 
 import numpy as np
 from utils.anchor_generator import generate_anchors
@@ -102,15 +103,17 @@ def post_data(outdata:dict, url:str, user:str, passw:str):
         print(str(e))
 
 if __name__ == "__main__":
-    # Defaults
-    default_camera = 0
-    frame_interval = 30
-    auth_username  = "admin"
-    auth_password  = "password"
-    upstream_url   = "https://127.0.0.1/app/v1/core/configuration"
+    # Example usage: python3 main.py --url "https://127.0.0.1/app/v1/core" --auth_username "admin" --auth_password "password"
+    parser = argparse.ArgumentParser(description="Face Mask Detection")
+    parser.add_argument('--camera', type=int, default=0, help='Set input camera device')
+    parser.add_argument('--frame_interval', type=int, default=30, help='Set the frame interval for post data request')
+    parser.add_argument('--url', type=str, help='Url of the RESTful API target for the post data request')
+    parser.add_argument('--auth_username', type=str, help='Username for Basic Access Authentication required by the RESTful API')
+    parser.add_argument('--auth_password', type=str, help='Password for Basic Access Authentication required by the RESTful API')
+    args = parser.parse_args()
 
     # Open camera device
-    cap = cv2.VideoCapture(default_camera)
+    cap = cv2.VideoCapture(args.camera)
     if not cap.isOpened():
         print("Cannot open camera")
         exit()
@@ -142,7 +145,7 @@ if __name__ == "__main__":
         inference_stamp = time.time()
 
         # Post detection results
-        if frame_nr % frame_interval == 0:
+        if frame_nr % args.frame_interval == 0:
             detected_classes = [0 , 0]
             for detection in detections:
                 class_id = detection[0]
@@ -153,7 +156,7 @@ if __name__ == "__main__":
                 "no_mask": detected_classes[1],
             }
 
-            post_data(outdict, upstream_url, auth_username, auth_password)
+            post_data(outdict, args.url, args.auth_username, args.auth_password)
 
         # Show results
         cv2.imshow('image', img_raw[:, :, ::-1])
