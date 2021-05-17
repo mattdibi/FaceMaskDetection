@@ -1,11 +1,8 @@
 # -*- coding:utf-8 -*-
 import cv2
 import time
-import json
 
 import numpy as np
-from PIL import Image
-#from keras.models import model_from_json
 from utils.anchor_generator import generate_anchors
 from utils.anchor_decode import decode_bbox
 from utils.nms import single_class_non_max_suppression
@@ -32,8 +29,7 @@ def inference(image,
               conf_thresh=0.5,
               iou_thresh=0.4,
               target_shape=(160, 160),
-              draw_result=True,
-              show_result=True
+              draw_result=True
               ):
     '''
     Main function of detection inference
@@ -42,7 +38,6 @@ def inference(image,
     :param iou_thresh: the IOU threshold of NMS
     :param target_shape: the model input size.
     :param draw_result: whether to daw bounding box to the image.
-    :param show_result: whether to display the image.
     :return:
     '''
     # image = np.copy(image)
@@ -87,8 +82,6 @@ def inference(image,
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, color)
         output_info.append([class_id, conf, xmin, ymin, xmax, ymax])
 
-    if show_result:
-        Image.fromarray(image).show()
     return output_info
 
 def post_data(outdata:dict, url:str, user:str, passw:str):
@@ -144,8 +137,7 @@ if __name__ == "__main__":
                                conf_thresh=0.5,
                                iou_thresh=0.5,
                                target_shape=(260, 260),
-                               draw_result=True,
-                               show_result=False)
+                               draw_result=True)
 
         inference_stamp = time.time()
 
