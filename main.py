@@ -117,6 +117,7 @@ if __name__ == "__main__":
 
     # Open camera device
     cap = cv2.VideoCapture(args.camera)
+    # cap = cv2.VideoCapture("nvarguscamerasrc ! nvvidconv ! video/x-raw, format=BGRx ! videoconvert ! video/x-raw, format=BGR ! appsink", cv2.CAP_GSTREAMER) # For Raspberry Pi Camera Module v2
     if not cap.isOpened():
         print("Cannot open camera")
         exit()
@@ -175,6 +176,7 @@ if __name__ == "__main__":
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
         cv2.putText(frame, "Inference time: %.4f" % (inference_stamp - read_frame_stamp), (10, 42),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
+        # frame = cv2.resize(frame, (848, 480))
         cv2.imshow('image', frame)
         if cv2.waitKey(1) == ord('q'):
             break
