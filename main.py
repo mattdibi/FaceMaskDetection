@@ -152,14 +152,10 @@ if __name__ == "__main__":
 
         # Draw results
         for detection in detections:
-            class_id = detection[0]
-            conf = detection[1]
-
-            xmin = detection[2]
-            ymin = detection[3]
-
-            xmax = detection[4]
-            ymax = detection[5]
+            # Classification information
+            class_id, conf = detection[0], detection[1]
+            # Detection information
+            (xmin, ymin, xmax, ymax) = (detection[2], detection[3], detection[4], detection[5])
 
             cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), id2color[class_id], 2)
             cv2.putText(frame, "%s: %.2f" % (id2class[class_id], conf), (xmin + 2, ymin - 2),
