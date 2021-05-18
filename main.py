@@ -139,9 +139,10 @@ if __name__ == "__main__":
 
         read_frame_stamp = time.time()
 
-        # Fix frame aspect ratio for Raspberry Pi camera
+        # Fix frame aspect ratio and flip for Raspberry Pi camera
         # 1920x1080(16:9) -> 1440x1080(4:3)
         # frame = frame[0:1080, 240:1920-240, :]
+        # frame = cv2.rotate(frame, cv2.ROTATE_180)
 
         # Run inference
         detections = inference(frame,
