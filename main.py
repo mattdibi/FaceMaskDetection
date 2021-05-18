@@ -139,6 +139,10 @@ if __name__ == "__main__":
 
         read_frame_stamp = time.time()
 
+        # Fix frame aspect ratio for Raspberry Pi camera
+        # 1920x1080(16:9) -> 1440x1080(4:3)
+        # frame = frame[0:1080, 240:1920-240, :]
+
         # Run inference
         detections = inference(frame,
                                conf_thresh=0.5,
@@ -180,7 +184,7 @@ if __name__ == "__main__":
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
             cv2.putText(frame, "Inference time: %.4f" % (inference_stamp - read_frame_stamp), (10, 42),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
-            # frame = cv2.resize(frame, (848, 480))
+            # frame = cv2.resize(frame, (640, 480))
             cv2.imshow('image', frame)
             if cv2.waitKey(1) == ord('q'):
                 break
