@@ -113,7 +113,10 @@ if __name__ == "__main__":
     parser.add_argument('--url', type=str, help='Url of the RESTful API target for the post data request')
     parser.add_argument('--auth_username', type=str, help='Username for Basic Access Authentication required by the RESTful API')
     parser.add_argument('--auth_password', type=str, help='Password for Basic Access Authentication required by the RESTful API')
+    parser.add_argument('--no_show', default=False, action='store_true', help='Disable video output')
     args = parser.parse_args()
+
+    show_results = not args.no_show
 
     # Open camera device
     cap = cv2.VideoCapture(args.camera)
@@ -161,26 +164,28 @@ if __name__ == "__main__":
             post_data(outdict, args.url, args.auth_username, args.auth_password)
 
         # Draw results
-        for detection in detections:
-            # Classification information
-            class_id, conf = detection[0], detection[1]
-            # Detection information
-            (xmin, ymin, xmax, ymax) = (detection[2], detection[3], detection[4], detection[5])
+        if show_results:
+            for detection in detections:
+                # Classification information
+                class_id, conf = detection[0], detection[1]
+                # Detection information
+                (xmin, ymin, xmax, ymax) = (detection[2], detection[3], detection[4], detection[5])
 
-            cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), id2color[class_id], 2)
-            cv2.putText(frame, "%s: %.2f" % (id2class[class_id], conf), (xmin + 2, ymin - 2),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, id2color[class_id])
+                cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), id2color[class_id], 2)
+                cv2.putText(frame, "%s: %.2f" % (id2class[class_id], conf), (xmin + 2, ymin - 2),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, id2color[class_id])
 
-        # Show results
-        cv2.putText(frame, "FPS: %.2f" % (1/(inference_stamp - start_stamp)), (10, 22),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
-        cv2.putText(frame, "Inference time: %.4f" % (inference_stamp - read_frame_stamp), (10, 42),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
-        # frame = cv2.resize(frame, (848, 480))
-        cv2.imshow('image', frame)
-        if cv2.waitKey(1) == ord('q'):
-            break
+            # Show results
+            cv2.putText(frame, "FPS: %.2f" % (1/(inference_stamp - start_stamp)), (10, 22),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
+            cv2.putText(frame, "Inference time: %.4f" % (inference_stamp - read_frame_stamp), (10, 42),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2)
+            # frame = cv2.resize(frame, (848, 480))
+            cv2.imshow('image', frame)
+            if cv2.waitKey(1) == ord('q'):
+                break
 
     # Clean exit
     cap.release()
-    cv2.destroyAllWindows()
+    if show_results:
+        cv2.destroyAllWindows()

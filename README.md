@@ -70,7 +70,7 @@ optional arguments:
   --auth_password AUTH_PASSWORD
                         Password for Basic Access Authentication required by
                         the RESTful API
-
+  --no_show             Disable video output
 ```
 
 Example:
